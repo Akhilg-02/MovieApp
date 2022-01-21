@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .outer{
+            background-color: darkslategrey;
+        }
+       
+        #movies{
+            height: 200px;
+            background-color: rgb(224, 134, 15);
+            width: 206px;
+            
+            
+            /* border: 1px solid red; */
+            border-top: none;
+            overflow: scroll;
+            margin-bottom: 30px;
+            border-radius:5px;
+        }
+
+        #query{
+            margin: auto;
+            height: 30px;
+            width:200px;
+            border-radius: 20px;
+            background-color: firebrick;
+            font-size: medium;
+                      
+        }
+
+        #flix{
+            display: flex;
+            justify-content: space-evenly;
+            
+            border: 3px solid green;
+            height: 50%;
+            width: 100%;
+
+        }
+        img{
+            height: 60%;
+            width: 80%;
+
+        }
+
+        .sec{
+            
+            border: 2px solid greenyellow;
+        }
+
+    </style>
+</head>
+<body>
+<div class="outer">
+    <!-- <input oninput="displayMovies()" type="text" id="query"/> for function  -->
+
+    <input oninput="debounce(displayMovies,1000)" type="text" id="query">
+
+    <div id="movies"></div>
+<!-- --------------------------------  -->
+    <div id="flix"></div>
+</div>
+</body>
+</html>
+
+<script>
+    let api_key = "659cab23";
+
+    let movies_div = document.getElementById("movies");
+
+   let flex_div = document.getElementById("flix");
+
+    let bomb;
+
+
+
+    async function searchMovies(){
+
+        try{
+            let name = document.getElementById("query").value;
+
+            let response = await fetch(`http://www.omdbapi.com/?apikey=${api_key}&s=${name}`);
+
+            let data = await response.json();
+
+            return data.Search;
+
+            console.log("data:",data);
+
+        }catch(err){
+            console.log("err:",err);
+        }
+    }
+   
+//----------------------------------------------------------------
+    async function displayMovies(){
+
+        movies_div.innerHTML = null; // for not bringing the other else movies
+
+        let movie_data = await searchMovies();
+        //console.log(movie_data)
+
+        if(movie_data === undefined){
+            return false;
+        }
+        //console.log(movie_data);
+
+        movie_data.forEach(function(movie){
+
+            var main = document.createElement("div");
+            let  id = movie.imdbID ;
+            main.addEventListener("click",function(){
+                showFun(id);
+            });
+
+            let p = document.createElement("p");
+            p.innerText = movie.Title;
+
+            main.append(p);
+
+            movies_div.append(main);
+
+            
+
+        })
+        //-----------------------------------------------------------
+      }
+      async function showFun(id){
+         // console.log(id);
+         let url = `http://www.omdbapi.com/?i=${id}&apikey=659cab23`;
+
+        //  let movie_info = await displayMovies(id);
+        //  console.log(movie_info);
+
+        try{
+            let red = await fetch(url);
+
+            let info = await red.json();
+
+        
+            console.log("info:",info);
+
+            movieNow(info)
+            
+
+        }catch(err){
+            console.log("err:",err);
+        }
+
+      }
+    //---------------------------------------------
+
+     function movieNow(part){
+        //thing.forEach(function(part){
+
+            let main1 = document.createElement("div");
+
+            var img = document.createElement("img");
+            img.src = part.Poster;
+
+            var tittle = document.createElement("h4");
+            tittle.setAttribute("class","sec")
+            tittle.innerHTML ="Movie: " + part.Title;
+
+            var date = document.createElement("h5");
+            //date.setAttribute("class","sec")
+            date.innerHTML ="Release date: " + part.Released;
+
+            var rate= document.createElement("h4");
+            rate.innerHTML ="Rating: " + part.imdbRating;
+
+            var cast = document.createElement("h4");
+            cast.innerHTML ="Cast: " + part.Actors;
+
+
+            main1.append(img,tittle,date,rate,cast);
+
+            flex_div.append(main1);
+
+        //})
+        
+
+    }
+
+    // Debouncing--- the optimization part----------------------------
+
+    function debounce(func , delay){
+        // func --> displayMovies()
+
+        clearTimeout(bomb);
+
+       bomb =  setTimeout(function(){
+            func();
+        },delay)
+        
+    }
+
+</script>
+
+
+<!-- apikey=[yourkey]
+http://www.omdbapi.com/?i=tt5814060&apikey=659cab23 -->
+
+<!-- {"Title":"The Nun","Year":"2018","Rated":"R","Released":"07 Sep 2018","Runtime":"96 min","Genre":"Horror, Mystery, Thriller","Director":"Corin Hardy","Writer":"Gary Dauberman, James Wan","Actors":"Demián Bichir, Taissa Farmiga, Jonas Bloquet","Plot":"A priest with a haunted past and a novice on the threshold of her final vows are sent by the Vatican to investigate the death of a young nun in Romania and confront a malevolent force in the form of a demonic nun.","Language":"English, French, Romanian, Latin","Country":"United States, Romania","Awards":"2 wins & 1 nomination","Poster":"https://m.media-amazon.com/images/M/MV5BMjM3NzQ5NDcxOF5BMl5BanBnXkFtZTgwNzM4MTQ5NTM@._V1_SX300.jpg","Ratings":[{"Source":"Internet Movie Database","Value":"5.3/10"},{"Source":"Rotten Tomatoes","Value":"24%"},{"Source":"Metacritic","Value":"46/100"}],"Metascore":"46","imdbRating":"5.3","imdbVotes":"131,810","imdbID":"tt5814060","Type":"movie","DVD":"20 Nov 2018","BoxOffice":"$117,450,119","Production":"N/A","Website":"N/A","Response":"True"} -->
